@@ -1,0 +1,14 @@
+# Build
+build/
+dist/
+
+# Claude
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+
+# Runtime data
+todo_data.json
+todo_settings.json
