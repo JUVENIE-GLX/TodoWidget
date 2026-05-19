@@ -596,7 +596,7 @@ class TodoWidget(tk.Tk):
             lbl = tk.Label(inner, text=txt, bg=CARD,
                      fg=LIGHT if done else BLACK,
                      font=fd if done else fn,
-                     anchor="w", wraplength=200)
+                     anchor="w")
             lbl.pack(side=tk.LEFT, fill=tk.X, expand=True)
             lbl.bind("<B1-Motion>", lambda e, idx=real_idx: self._item_motion(e, idx))
             lbl.bind("<ButtonRelease-1>", self._item_release)
@@ -618,6 +618,18 @@ class TodoWidget(tk.Tk):
                 w.bind("<Leave>", leave, add="+")
 
         self.update_idletasks()
+        # 动态设置 wraplength：扣除复选框和删除按钮的宽度
+        for row in self.lc.winfo_children():
+            inner = row.winfo_children()[0] if row.winfo_children() else None
+            if not inner:
+                continue
+            children = inner.winfo_children()
+            if len(children) < 3:
+                continue
+            cb, lbl, dl = children[0], children[1], children[2]
+            avail = inner.winfo_width() - cb.winfo_reqwidth() - dl.winfo_reqwidth() - _si(self._sw(), 8) * 2
+            if avail > 0:
+                lbl.config(wraplength=avail)
         self._lc_cv.config(scrollregion=self._lc_cv.bbox("all"))
 
 
