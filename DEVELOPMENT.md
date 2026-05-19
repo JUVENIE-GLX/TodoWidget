@@ -333,6 +333,24 @@ for d in [k for k in self.todos if k != self.today and not self.todos[k]]:
 
 ---
 
+## 待办文字换行
+
+Label 的 `wraplength` 不硬编码，渲染后根据实际可用宽度动态计算：
+
+```python
+# 渲染完成后，遍历每行计算可用宽度
+for row in self.lc.winfo_children():
+    inner = row.winfo_children()[0]
+    cb, lbl, dl = inner.winfo_children()[0], inner.winfo_children()[1], inner.winfo_children()[2]
+    avail = inner.winfo_width() - cb.winfo_reqwidth() - dl.winfo_reqwidth() - padding
+    lbl.config(wraplength=avail)
+```
+
+- 扣除复选框（`cb`）、删除按钮（`dl`）和内边距后，剩余空间全部用于文字换行
+- 不同视图尺寸（small/medium/large）自动适配
+
+---
+
 ## 已知限制
 
 1. **卡片无圆角**：tkinter 不支持透明 canvas，所有圆角方案均有缺陷
