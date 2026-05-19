@@ -129,6 +129,30 @@ class TodoWidget(tk.Tk):
         self.wday = WEEKDAYS[now.weekday()]
         if self.today not in self.todos:
             self.todos[self.today] = []
+        # 清理之前已完成的待办，并继承未完成的待办
+        changed = False
+        for d in list(self.todos.keys()):
+            if d == self.today:
+                continue
+            before = len(self.todos[d])
+            self.todos[d] = [t for t in self.todos[d] if not t.get("done")]
+            if len(self.todos[d]) != before:
+                changed = True
+        if not self.todos[self.today]:
+            pending = []
+            for d in sorted(self.todos.keys()):
+                if d == self.today:
+                    continue
+                pending.extend(dict(t) for t in self.todos[d])
+            if pending:
+                self.todos[self.today] = pending
+                changed = True
+        # 删除已清空的历史日期
+        for d in [k for k in self.todos if k != self.today and not self.todos[k]]:
+            del self.todos[d]
+            changed = True
+        if changed:
+            self._save_data()
         self._drag = None
         self._reorder = None  # (index, y_root, started)
         self._editing = None

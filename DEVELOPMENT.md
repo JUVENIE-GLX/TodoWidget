@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-基于 tkinter 的桌面悬浮待办清单 Widget，支持大中小三档视图、待办增删勾选、拖拽排序、滚轮滚动、数据持久化。
+基于 tkinter 的桌面悬浮待办清单 Widget，支持大中小三档视图、待办增删勾选、拖拽排序、滚轮滚动、数据持久化、跨日自动继承未完成待办。
 
 ---
 
@@ -172,6 +172,7 @@ def _on_wheel(self, e):
 | 清空 | ✅ `_save_data()` |
 | 关闭窗口 | ✅ `_close()` 保存数据+设置 |
 | 切换视图 | ✅ `_cycle()` 保存设置 |
+| 启动时继承/清理 | ✅ `_save_data()`（有变更时） |
 
 ### 路径兼容性
 
@@ -299,12 +300,44 @@ Header 中日期右侧的「清空 ▾」按钮组：
 
 ---
 
+## 启动时自动继承与清理
+
+每次启动应用时，在 `__init__` 中自动执行以下逻辑：
+
+1. **清理历史已完成待办** — 遍历所有历史日期，删除 `done: true` 的项
+2. **继承未完成待办** — 如果今天列表为空，从所有历史日期中收集未完成的待办（按日期升序），全部继承到今天
+3. **删除空日期条目** — 清理后没有内容的历史日期从数据文件中移除
+4. **保存** — 有变更时立即写入 `todo_data.json`
+
+```python
+# 清理已完成
+for d in list(self.todos.keys()):
+    if d == self.today:
+        continue
+    self.todos[d] = [t for t in self.todos[d] if not t.get("done")]
+
+# 继承全部未完成
+if not self.todos[self.today]:
+    pending = []
+    for d in sorted(self.todos.keys()):
+        if d == self.today:
+            continue
+        pending.extend(dict(t) for t in self.todos[d])
+    if pending:
+        self.todos[self.today] = pending
+
+# 删除空日期
+for d in [k for k in self.todos if k != self.today and not self.todos[k]]:
+    del self.todos[d]
+```
+
+---
+
 ## 已知限制
 
 1. **卡片无圆角**：tkinter 不支持透明 canvas，所有圆角方案均有缺陷
 2. **无视觉滚动条**：为保证边距对齐，移除了滚动条，仅靠滚轮滚动
-3. **仅当日待办**：数据按日期分隔，跨日不自动迁移
-4. **字体依赖**：使用 `Microsoft YaHei UI`，需 Windows 中文环境
+3. **字体依赖**：使用 `Microsoft YaHei UI`，需 Windows 中文环境
 
 ---
 
@@ -325,6 +358,7 @@ pyinstaller TodoWidget.spec --clean --noconfirm
 ## 后续可加功能参考
 
 - [x] 双击待办修改（双击 lbl 触发 `<Double-Button-1>`，替换为 Entry 编辑）
+- [x] 跨日继承未完成待办（启动时自动继承所有历史未完成项，清理已完成项）
 - [ ] 多日待办切换（日期选择器）
 - [ ] 待办分类/标签
 - [ ] 搜索/过滤
