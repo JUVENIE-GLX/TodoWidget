@@ -129,27 +129,36 @@ class TodoWidget(tk.Tk):
         self.wday = WEEKDAYS[now.weekday()]
         if self.today not in self.todos:
             self.todos[self.today] = []
-        # 清理之前已完成的待办，并继承未完成的待办
+        # 只在今天待办为空时，继承最近一天的未完成待办
         changed = False
+        if not self.todos[self.today]:
+            history = sorted([d for d in self.todos if d < self.today], reverse=True)
+            if history:
+                last = history[0]
+                pending = [dict(t) for t in self.todos[last] if not t.get("done")]
+                if pending:
+                    self.todos[self.today] = pending
+                    changed = True
+        # 去重：按 text 去重，保留第一次出现的项
+        seen = set()
+        deduped = []
+        for t in self.todos[self.today]:
+            if t["text"] not in seen:
+                seen.add(t["text"])
+                deduped.append(t)
+        if len(deduped) != len(self.todos[self.today]):
+            self.todos[self.today] = deduped
+            changed = True
+        # 清理历史已完成待办，删除空日期
         for d in list(self.todos.keys()):
             if d == self.today:
                 continue
             before = len(self.todos[d])
             self.todos[d] = [t for t in self.todos[d] if not t.get("done")]
-            if len(self.todos[d]) != before:
+            if not self.todos[d]:
+                del self.todos[d]
+            elif len(self.todos[d]) != before:
                 changed = True
-        pending = []
-        for d in sorted(self.todos.keys()):
-            if d == self.today:
-                continue
-            pending.extend(dict(t) for t in self.todos[d])
-        if pending:
-            self.todos[self.today].extend(pending)
-            changed = True
-        # 删除已清空的历史日期
-        for d in [k for k in self.todos if k != self.today and not self.todos[k]]:
-            del self.todos[d]
-            changed = True
         if changed:
             self._save_data()
         self._drag = None
