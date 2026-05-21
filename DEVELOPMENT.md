@@ -305,7 +305,7 @@ Header 中日期右侧的「清空 ▾」按钮组：
 每次启动应用时，在 `__init__` 中自动执行以下逻辑：
 
 1. **清理历史已完成待办** — 遍历所有历史日期，删除 `done: true` 的项
-2. **继承未完成待办** — 如果今天列表为空，从所有历史日期中收集未完成的待办（按日期升序），全部继承到今天
+2. **继承未完成待办** — 从所有历史日期中收集未完成的待办（按日期升序），追加到今天的列表（无论今天是否已有待办）
 3. **删除空日期条目** — 清理后没有内容的历史日期从数据文件中移除
 4. **保存** — 有变更时立即写入 `todo_data.json`
 
@@ -316,15 +316,14 @@ for d in list(self.todos.keys()):
         continue
     self.todos[d] = [t for t in self.todos[d] if not t.get("done")]
 
-# 继承全部未完成
-if not self.todos[self.today]:
-    pending = []
-    for d in sorted(self.todos.keys()):
-        if d == self.today:
-            continue
-        pending.extend(dict(t) for t in self.todos[d])
-    if pending:
-        self.todos[self.today] = pending
+# 继承全部未完成（无条件，每次启动都执行）
+pending = []
+for d in sorted(self.todos.keys()):
+    if d == self.today:
+        continue
+    pending.extend(dict(t) for t in self.todos[d])
+if pending:
+    self.todos[self.today].extend(pending)
 
 # 删除空日期
 for d in [k for k in self.todos if k != self.today and not self.todos[k]]:

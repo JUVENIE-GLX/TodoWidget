@@ -138,15 +138,14 @@ class TodoWidget(tk.Tk):
             self.todos[d] = [t for t in self.todos[d] if not t.get("done")]
             if len(self.todos[d]) != before:
                 changed = True
-        if not self.todos[self.today]:
-            pending = []
-            for d in sorted(self.todos.keys()):
-                if d == self.today:
-                    continue
-                pending.extend(dict(t) for t in self.todos[d])
-            if pending:
-                self.todos[self.today] = pending
-                changed = True
+        pending = []
+        for d in sorted(self.todos.keys()):
+            if d == self.today:
+                continue
+            pending.extend(dict(t) for t in self.todos[d])
+        if pending:
+            self.todos[self.today].extend(pending)
+            changed = True
         # 删除已清空的历史日期
         for d in [k for k in self.todos if k != self.today and not self.todos[k]]:
             del self.todos[d]
