@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todo Widget 风格展示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1 {
+    text-align: center;
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .subtitle {
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 40px;
+    font-size: 1.1rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 30px;
+  }
+  .card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+  }
+  .card-preview {
+    height: 280px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-info {
+    padding: 25px;
+  }
+  .card-info h3 {
+    font-size: 1.3rem;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+  }
+  .card-info p {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tag {
+    background: #f0f0f5;
+    color: #555;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+  }
+  .tag.tech { background: #e8f4fd; color: #0066cc; }
+  .tag.style { background: #fce4ec; color: #c62828; }
+
+  /* Style 1: macOS iOS Widget */
+  .style-macos {
+    background: linear-gradient(145deg, #f5f5f7, #e8e8ed);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .style-macos .widget {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .style-macos .widget-title {
+    font-size: 11px;
+    color: #8e8e93;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+  .style-macos .todo-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f2f2f7;
+  }
+  .style-macos .todo-item:last-child { border: none; }
+  .style-macos .checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #007aff;
+    flex-shrink: 0;
+  }
+  .style-macos .checkbox.done {
+    background: #34c759;
+    border-color: #34c759;
+  }
+  .style-macos .todo-text {
+    font-size: 14px;
+    color: #1d1d1f;
+  }
+  .style-macos .todo-text.done {
+    text-decoration: line-through;
+    color: #8e8e93;
+  }
+
+  /* Style 2: Minimal Dark */
+  .style-dark {
+    background: #1a1a2e;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .style-dark .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5px;
+  }
+  .style-dark .header h4 {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .style-dark .header span {
+    color: #6c6c8a;
+    font-size: 12px;
+  }
+  .style-dark .task {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .style-dark .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .style-dark .dot.urgent { background: #ff6b6b; }
+  .style-dark .dot.normal { background: #4ecdc4; }
+  .style-dark .dot.low { background: #95e1d3; }
+  .style-dark .task-text {
+    color: #e8e8e8;
+    font-size: 14px;
+    flex: 1;
+  }
+  .style-dark .task-time {
+    color: #6c6c8a;
+    font-size: 11px;
+  }
+
+  /* Style 3: Neumorphism */
+  .style-neu {
+    background: #e0e5ec;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .style-neu .card-inner {
+    background: #e0e5ec;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 8px 8px 16px #b8bec7, -8px -8px 16px #ffffff;
+  }
+  .style-neu .title {
+    color: #4a4a6a;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+  }
+  .style-neu .item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .style-neu .circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    box-shadow: inset 3px 3px 6px #b8bec7, inset -3px -3px 6px #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .style-neu .circle.checked {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    box-shadow: 3px 3px 6px #b8bec7, -3px -3px 6px #ffffff;
+  }
+  .style-neu .check { color: white; font-size: 14px; }
+  .style-neu .text {
+    color: #4a4a6a;
+    font-size: 14px;
+  }
+  .style-neu .text.done {
+    text-decoration: line-through;
+    color: #a0a0b8;
+  }
+
+  /* Style 4: Glassmorphism */
+  .style-glass {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .style-glass .glass-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .style-glass .glass-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+  .style-glass .glass-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .style-glass .glass-item:last-child { border: none; }
+  .style-glass .glass-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.5);
+    flex-shrink: 0;
+  }
+  .style-glass .glass-check.done {
+    background: rgba(255,255,255,0.3);
+    border-color: white;
+  }
+  .style-glass .glass-text {
+    color: white;
+    font-size: 15px;
+  }
+  .style-glass .glass-text.done {
+    opacity: 0.6;
+    text-decoration: line-through;
+  }
+
+  /* Style 5: Sticky Note */
+  .style-sticky {
+    background: #f8f4e8;
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .style-sticky .note {
+    background: #fff9c4;
+    width: 130px;
+    padding: 15px;
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.1);
+    transform: rotate(-2deg);
+    font-family: 'Comic Sans MS', cursive;
+  }
+  .style-sticky .note:nth-child(2) {
+    background: #ffecb3;
+    transform: rotate(1deg);
+  }
+  .style-sticky .note:nth-child(3) {
+    background: #e1f5fe;
+    transform: rotate(-1deg);
+  }
+  .style-sticky .note:nth-child(4) {
+    background: #f3e5f5;
+    transform: rotate(2deg);
+  }
+  .style-sticky .note-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed #999;
+    padding-bottom: 5px;
+  }
+  .style-sticky .note-text {
+    font-size: 11px;
+    color: #555;
+    line-height: 1.5;
+  }
+  .style-sticky .note-text.done {
+    text-decoration: line-through;
+  }
+
+  /* Style 6: Modern Flat */
+  .style-flat {
+    background: #fafafa;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .style-flat .flat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+  }
+  .style-flat .flat-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #00b4d8, #0077b6);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+  }
+  .style-flat .flat-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2d3436;
+  }
+  .style-flat .flat-item {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .style-flat .flat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .style-flat .flat-dot.p1 { background: #ff6b6b; }
+  .style-flat .flat-dot.p2 { background: #ffd93d; }
+  .style-flat .flat-dot.p3 { background: #6bcb77; }
+  .style-flat .flat-text {
+    flex: 1;
+    font-size: 14px;
+    color: #2d3436;
+  }
+  .style-flat .flat-badge {
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    color: #666;
+  }
+
+  /* Style 7: Gradient Card */
+  .style-gradient {
+    background: linear-gradient(135deg, #74b9ff, #a29bfe);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .style-gradient .grad-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+  .style-gradient .grad-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .style-gradient .grad-count {
+    background: linear-gradient(135deg, #74b9ff, #a29bfe);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .style-gradient .grad-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .style-gradient .grad-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid #ddd;
+    flex-shrink: 0;
+  }
+  .style-gradient .grad-check.done {
+    background: linear-gradient(135deg, #74b9ff, #a29bfe);
+    border-color: transparent;
+  }
+  .style-gradient .grad-text {
+    font-size: 14px;
+    color: #2d3436;
+  }
+
+  .note-box {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 40px;
+    color: white;
+    text-align: center;
+  }
+  .note-box p { margin: 8px 0; opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Todo Widget 风格展示</h1>
+  <p class="subtitle">选择你喜欢的风格，告诉我编号或风格名称</p>
+
+  <div class="grid">
+
+    <!-- Style 1: macOS/iOS -->
+    <div class="card">
+      <div class="card-preview style-macos">
+        <div class="widget">
+          <div class="widget-title">待办事项</div>
+          <div class="todo-item">
+            <div class="checkbox done"></div>
+            <div class="todo-text done">完成项目文档</div>
+          </div>
+          <div class="todo-item">
+            <div class="checkbox"></div>
+            <div class="todo-text">曲面建模视频</div>
+          </div>
+          <div class="todo-item">
+            <div class="checkbox"></div>
+            <div class="todo-text">包装图标设计</div>
+          </div>
+          <div class="todo-item">
+            <div class="checkbox"></div>
+            <div class="todo-text">写作与表达要求</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>Style 1: macOS/iOS 小组件风格</h3>
+        <p>苹果系统小组件风格，半透明毛玻璃背景，圆形复选框，简洁优雅。适合喜欢苹果设计语言的用户。</p>
+        <div class="tags">
+          <span class="tag style">毛玻璃</span>
+          <span class="tag style">苹果风</span>
+          <span class="tag tech">tkinter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Style 2: Dark Mode -->
+    <div class="card">
+      <div class="card-preview style-dark">
+        <div class="header">
+          <h4>Today</h4>
+          <span>4 tasks</span>
+        </div>
+        <div class="task">
+          <div class="dot urgent"></div>
+          <div class="task-text">完成包装图标设计</div>
+          <div class="task-time">10:00</div>
+        </div>
+        <div class="task">
+          <div class="dot normal"></div>
+          <div class="task-text">曲面建模视频</div>
+          <div class="task-time">14:00</div>
+        </div>
+        <div class="task">
+          <div class="dot low"></div>
+          <div class="task-text">写作与表达要求</div>
+          <div class="task-time">16:00</div>
+        </div>
+        <div class="task">
+          <div class="dot normal"></div>
+          <div class="task-text">修改简化简历</div>
+          <div class="task-time">18:00</div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>Style 2: 暗黑极简风格</h3>
+        <p>深色背景，彩色圆点区分优先级，带时间标签。护眼且有高级感，适合夜间使用。</p>
+        <div class="tags">
+          <span class="tag style">暗黑模式</span>
+          <span class="tag style">优先级</span>
+          <span class="tag tech">customtkinter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Style 3: Neumorphism -->
+    <div class="card">
+      <div class="card-preview style-neu">
+        <div class="card-inner">
+          <div class="title">My Tasks</div>
+          <div class="item">
+            <div class="circle checked"><span class="check">✓</span></div>
+            <div class="text done">完成项目文档</div>
+          </div>
+          <div class="item">
+            <div class="circle"></div>
+            <div class="text">曲面建模视频</div>
+          </div>
+          <div class="item">
+            <div class="circle"></div>
+            <div class="text">包装图标设计</div>
+          </div>
+          <div class="item">
+            <div class="circle checked"><span class="check">✓</span></div>
+            <div class="text done">写作与表达要求</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>Style 3: 新拟态风格 (Neumorphism)</h3>
+        <p>柔和的阴影和高光效果，按钮有立体感。现代感强，视觉舒适，是近年流行的设计趋势。</p>
+        <div class="tags">
+          <span class="tag style">新拟态</span>
+          <span class="tag style">立体感</span>
+          <span class="tag tech">tkinter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Style 4: Glassmorphism -->
+    <div class="card">
+      <div class="card-preview style-glass">
+        <div class="glass-card">
+          <div class="glass-title">Today's Focus</div>
+          <div class="glass-item">
+            <div class="glass-check done"></div>
+            <div class="glass-text done">完成项目文档</div>
+          </div>
+          <div class="glass-item">
+            <div class="glass-check"></div>
+            <div class="glass-text">曲面建模视频</div>
+          </div>
+          <div class="glass-item">
+            <div class="glass-check"></div>
+            <div class="glass-text">包装图标设计</div>
+          </div>
+          <div class="glass-item">
+            <div class="glass-check"></div>
+            <div class="glass-text">写作与表达要求</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>Style 4: 毛玻璃风格 (Glassmorphism)</h3>
+        <p>半透明玻璃质感，彩色渐变背景。梦幻通透，极具设计感，适合喜欢炫酷风格的用户。</p>
+        <div class="tags">
+          <span class="tag style">毛玻璃</span>
+          <span class="tag style">渐变</span>
+          <span class="tag tech">customtkinter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Style 5: Sticky Notes -->
+    <div class="card">
+      <div class="card-preview style-sticky">
+        <div class="note">
+          <div class="note-title">高优先</div>
+          <div class="note-text">包装图标设计</div>
+        </div>
+        <div class="note">
+          <div class="note-title">学习</div>
+          <div class="note-text done">曲面建模视频</div>
+        </div>
+        <div class="note">
+          <div class="note-title">文档</div>
+          <div class="note-text">写作与表达要求</div>
+        </div>
+        <div class="note">
+          <div class="note-title">其他</div>
+          <div class="note-text">修改简化简历</div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>Style 5: 便签纸风格 (Sticky Notes)</h3>
+        <p>彩色便签纸，可拖拽排列，手写体风格。活泼有趣，适合喜欢可爱风格的用户。</p>
+        <div class="tags">
+          <span class="tag style">便签</span>
+          <span class="tag style">可爱风</span>
+          <span class="tag tech">tkinter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Style 6: Modern Flat -->
+    <div class="card">
+      <div class="card-preview style-flat">
+        <div class="flat-header">
+          <div class="flat-icon">✓</div>
+          <div class="flat-title">Tasks</div>
+        </div>
+        <div class="flat-item">
+          <div class="flat-dot p1"></div>
+          <div class="flat-text">包装图标设计</div>
+          <div class="flat-badge">紧急</div>
+        </div>
+        <div class="flat-item">
+          <div class="flat-dot p2"></div>
+          <div class="flat-text">曲面建模视频</div>
+          <div class="flat-badge">进行中</div>
+        </div>
+        <div class="flat-item">
+          <div class="flat-dot p3"></div>
+          <div class="flat-text">写作与表达要求</div>
+          <div class="flat-badge">普通</div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>Style 6: 现代扁平风格</h3>
+        <p>清晰的卡片布局，彩色圆点标识优先级，带状态标签。干净利落，信息层次分明。</p>
+        <div class="tags">
+          <span class="tag style">扁平化</span>
+          <span class="tag style">卡片式</span>
+          <span class="tag tech">customtkinter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Style 7: Gradient -->
+    <div class="card">
+      <div class="card-preview style-gradient">
+        <div class="grad-card">
+          <div class="grad-header">
+            <h4 style="color:#2d3436">今日待办</h4>
+            <div class="grad-count">3 项</div>
+          </div>
+          <div class="grad-item">
+            <div class="grad-check"></div>
+            <div class="grad-text">包装图标设计</div>
+          </div>
+          <div class="grad-item">
+            <div class="grad-check done"></div>
+            <div class="grad-text">曲面建模视频</div>
+          </div>
+          <div class="grad-item">
+            <div class="grad-check"></div>
+            <div class="grad-text">写作与表达要求</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>Style 7: 渐变卡片风格</h3>
+        <p>柔和渐变背景配白色卡片，清新自然。配色活泼但不刺眼，视觉舒适度高。</p>
+        <div class="tags">
+          <span class="tag style">渐变</span>
+          <span class="tag style">清新</span>
+          <span class="tag tech">tkinter</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note-box">
+    <p><strong>如何选择？</strong></p>
+    <p>告诉我你喜欢的 <strong>Style 编号</strong>（如 Style 1）或 <strong>风格名称</strong>（如 毛玻璃）</p>
+    <p>我会根据你喜欢的风格改造 TodoWidget</p>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>清空按钮风格</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Microsoft YaHei UI", sans-serif;
+    background: #F2F2F7;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+  }
+  h1 { color: #1C1C1E; font-size: 24px; }
+  .subtitle { color: #8E8E93; font-size: 14px; margin-top: -30px; }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1C1C1E;
+    margin-bottom: 16px;
+  }
+  .card-demo {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* Style 1: 简约文字 */
+  .style1 {
+    font-size: 13px;
+    color: #007AFF;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+  }
+  .style1:hover { background: rgba(0, 122, 255, 0.1); }
+
+  /* Style 2: 胶囊按钮 */
+  .style2 {
+    font-size: 12px;
+    color: white;
+    background: #007AFF;
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: none;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .style2:hover { background: #0056CC; transform: scale(1.02); }
+
+  /* Style 3: 图标按钮 */
+  .style3 {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(0, 122, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: #007AFF;
+    font-size: 14px;
+  }
+  .style3:hover { background: rgba(0, 122, 255, 0.2); }
+
+  /* Style 4: 下划线文字 */
+  .style4 {
+    font-size: 13px;
+    color: #007AFF;
+    cursor: pointer;
+    padding: 4px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #007AFF;
+    font-family: inherit;
+    transition: opacity 0.2s;
+  }
+  .style4:hover { opacity: 0.7; }
+
+  /* Style 5: 幽灵按钮 */
+  .style5 {
+    font-size: 12px;
+    color: #007AFF;
+    background: transparent;
+    border: 1.5px solid #007AFF;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .style5:hover { background: #007AFF; color: white; }
+
+  /* Style 6: 危险风格 */
+  .style6 {
+    font-size: 12px;
+    color: #FF3B30;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+  }
+  .style6:hover { background: rgba(255, 59, 48, 0.1); }
+
+  /* Style 7: 标签式 */
+  .style7 {
+    font-size: 11px;
+    color: #8E8E93;
+    background: #F2F2F7;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: none;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .style7:hover { background: #E5E5EA; color: #1C1C1E; }
+
+  /* Style 8: 下拉菜单 */
+  .style8 {
+    font-size: 12px;
+    color: #8E8E93;
+    cursor: pointer;
+    padding: 4px 8px;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .style8:hover { color: #1C1C1E; }
+  .style8 .arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+  }
+  .style8:hover .arrow { transform: rotate(180deg); }
+
+  .note {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    color: #8E8E93;
+    font-size: 14px;
+  }
+  .note strong { color: #1C1C1E; }
+</style>
+</head>
+<body>
+
+<h1>清空按钮风格</h1>
+<p class="subtitle">选择你喜欢的风格，告诉我编号</p>
+
+<div class="gallery">
+  <!-- Style 1 -->
+  <div class="card">
+    <div class="card-title">Style 1: 简约文字</div>
+    <div class="card-demo">
+      <button class="style1">清空</button>
+      <button class="style1">清空 ▾</button>
+    </div>
+  </div>
+
+  <!-- Style 2 -->
+  <div class="card">
+    <div class="card-title">Style 2: 胶囊按钮</div>
+    <div class="card-demo">
+      <button class="style2">清空</button>
+      <button class="style2">清空 ▾</button>
+    </div>
+  </div>
+
+  <!-- Style 3 -->
+  <div class="card">
+    <div class="card-title">Style 3: 图标按钮</div>
+    <div class="card-demo">
+      <button class="style3">✕</button>
+      <button class="style3">🗑</button>
+    </div>
+  </div>
+
+  <!-- Style 4 -->
+  <div class="card">
+    <div class="card-title">Style 4: 下划线文字</div>
+    <div class="card-demo">
+      <button class="style4">清空</button>
+    </div>
+  </div>
+
+  <!-- Style 5 -->
+  <div class="card">
+    <div class="card-title">Style 5: 幽灵按钮</div>
+    <div class="card-demo">
+      <button class="style5">清空</button>
+      <button class="style5">清空 ▾</button>
+    </div>
+  </div>
+
+  <!-- Style 6 -->
+  <div class="card">
+    <div class="card-title">Style 6: 危险风格</div>
+    <div class="card-demo">
+      <button class="style6">清空</button>
+      <button class="style6">清空 ▾</button>
+    </div>
+  </div>
+
+  <!-- Style 7 -->
+  <div class="card">
+    <div class="card-title">Style 7: 标签式</div>
+    <div class="card-demo">
+      <button class="style7">清空</button>
+      <button class="style7">清空 ▾</button>
+    </div>
+  </div>
+
+  <!-- Style 8 -->
+  <div class="card">
+    <div class="card-title">Style 8: 下拉指示</div>
+    <div class="card-demo">
+      <button class="style8">清空 <span class="arrow">▼</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  告诉我 <strong>Style 编号</strong>（如 Style 1）
+</div>
+
+</body>
+</html>

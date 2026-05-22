@@ -177,13 +177,40 @@ def _on_wheel(self, e):
 ### 路径兼容性
 
 ```python
-_DIR = os.path.dirname(os.path.abspath(
-    sys.executable if getattr(sys, 'frozen', False) else __file__
-))
+if getattr(sys, 'frozen', False):
+    _DIR = os.path.dirname(os.path.abspath(sys.executable))
+    _DATA_DIR = os.path.join(_DIR, '_internal')
+    if not os.path.isdir(_DATA_DIR):
+        _DATA_DIR = _DIR
+else:
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+    _DATA_DIR = _DIR
 ```
 
 - 开发模式：`__file__` 定位
-- 打包模式（PyInstaller）：`sys.executable` 定位到 exe 目录
+- 打包模式（PyInstaller）：数据文件在 exe 同级的 `_internal` 目录
+
+---
+
+## 主屏幕定位
+
+启动时自动检测保存的窗口位置是否在主屏幕内，不在则居中显示：
+
+```python
+def _get_primary_work_area():
+    """Windows API 获取主屏幕工作区域（排除任务栏）"""
+    # SPI_GETWORKAREA = 0x0030
+    ctypes.windll.user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0)
+
+def _clamp_to_primary(x, y, w, h):
+    """确保窗口在主屏幕内，否则居中"""
+    # 检查窗口是否至少一半可见在主屏幕
+    # 不在则返回主屏幕中心坐标
+```
+
+- 使用 `SystemParametersInfoW(SPI_GETWORKAREA)` 获取主屏幕工作区域
+- 保存的坐标如果不在主屏幕范围内，自动居中到主屏幕
+- 正常拖动到副屏的位置会被保留（下次启动如果副屏还在）
 
 ---
 

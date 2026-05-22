@@ -18,10 +18,18 @@ import webview
 import json
 from datetime import datetime
 
-_DIR = os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__))
-DATA_FILE = os.path.join(_DIR, "todo_data.json")
-SETTINGS_FILE = os.path.join(_DIR, "todo_settings.json")
-HTML_FILE = os.path.join(_DIR, "todo_widget.html")
+if getattr(sys, 'frozen', False):
+    _DIR = os.path.dirname(os.path.abspath(sys.executable))
+    _DATA_DIR = os.path.join(_DIR, '_internal')
+    if not os.path.isdir(_DATA_DIR):
+        _DATA_DIR = _DIR
+else:
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+    _DATA_DIR = _DIR
+
+DATA_FILE = os.path.join(_DATA_DIR, "todo_data.json")
+SETTINGS_FILE = os.path.join(_DATA_DIR, "todo_settings.json")
+HTML_FILE = os.path.join(_DATA_DIR, "todo_widget.html")
 
 # Windows DWM API for rounded corners
 try:
@@ -50,6 +58,43 @@ except ImportError:
 
 SIZES = [("small", 280, 420), ("medium", 340, 540), ("large", 420, 660)]
 SIZE_NAMES = [s[0] for s in SIZES]
+
+
+def _get_primary_work_area():
+    """Get primary monitor work area (excluding taskbar) using Windows API"""
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class RECT(ctypes.Structure):
+            _fields_ = [("left", wintypes.LONG), ("top", wintypes.LONG),
+                        ("right", wintypes.LONG), ("bottom", wintypes.LONG)]
+
+        rect = RECT()
+        # SPI_GETWORKAREA = 0x0030
+        ctypes.windll.user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0)
+        return rect.left, rect.top, rect.right, rect.bottom
+    except Exception:
+        return None
+
+
+def _clamp_to_primary(x, y, w, h):
+    """Ensure window is within primary monitor bounds. Returns (x, y)."""
+    area = _get_primary_work_area()
+    if area is None:
+        return x, y
+    left, top, right, bottom = area
+    screen_w = right - left
+    screen_h = bottom - top
+
+    # Check if window fits within primary screen (with some margin)
+    if x is not None and y is not None:
+        # Check if at least half the window is visible on primary screen
+        if (left - w // 2) <= x <= (right - w // 2) and (top - h // 2) <= y <= (bottom - h // 2):
+            return x, y
+
+    # Default: center on primary screen
+    return left + (screen_w - w) // 2, top + (screen_h - h) // 2
 
 
 def _load(path):
@@ -179,6 +224,9 @@ def main():
 
     x = settings.get("x", None)
     y = settings.get("y", None)
+
+    # Ensure window appears on primary monitor
+    x, y = _clamp_to_primary(x, y, w, h)
 
     # Create window reference holder
     window = None

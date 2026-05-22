@@ -1,6 +1,7 @@
 # Build
 build/
 dist/
+TodoWidget/
 
 # Claude
 .claude/
