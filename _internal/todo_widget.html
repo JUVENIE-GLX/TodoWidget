@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>待办</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F2F2F7;
+    --card: rgba(255, 255, 255, 0.85);
+    --card-solid: #FFFFFF;
+    --black: #1C1C1E;
+    --gray: #8E8E93;
+    --light: #AEAEB2;
+    --blue: #007AFF;
+    --green: #34C759;
+    --red: #FF3B30;
+    --separator: rgba(60, 60, 67, 0.12);
+    --shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+    --scale: 1;
+    --radius: 14px;
+  }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: transparent !important;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Microsoft YaHei UI", sans-serif;
+    background: transparent !important;
+    color: var(--black);
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  .window {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+  }
+
+  .container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .traffic-lights {
+    display: flex;
+    gap: 6px;
+  }
+
+  .traffic-light {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    -webkit-app-region: no-drag;
+  }
+  .traffic-light:hover { opacity: 0.8; }
+  .traffic-light.red { background: #FF5F57; }
+  .traffic-light.yellow { background: #FEBC2E; }
+  .traffic-light.green { background: #28C840; }
+
+  .title {
+    font-size: calc(18px * var(--scale));
+    font-weight: 700;
+    color: var(--black);
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-btn {
+    font-size: calc(11px * var(--scale));
+    color: #636366;
+    background: #E5E5EA;
+    cursor: pointer;
+    padding: 3px 10px;
+    border-radius: 12px;
+    transition: all 0.2s;
+    -webkit-app-region: no-drag;
+  }
+  .header-btn:hover { background: #D1D1D6; color: var(--black); }
+
+  .time-info {
+    font-size: calc(14px * var(--scale));
+    font-weight: 600;
+    color: var(--gray);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Input Card ── */
+  .input-card {
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    -webkit-app-region: no-drag;
+  }
+
+  .add-btn {
+    font-size: calc(20px * var(--scale));
+    color: var(--blue);
+    cursor: pointer;
+    font-weight: 300;
+    line-height: 1;
+    padding: 0 2px;
+    transition: color 0.2s;
+  }
+  .add-btn:hover { color: #0056CC; }
+
+  .input-field {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: calc(14px * var(--scale));
+    color: var(--black);
+    font-family: inherit;
+  }
+  .input-field::placeholder { color: var(--light); }
+
+  /* ── Todo List ── */
+  .todo-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 2px 0;
+    -webkit-app-region: no-drag;
+  }
+
+  .todo-list::-webkit-scrollbar { width: 4px; }
+  .todo-list::-webkit-scrollbar-track { background: transparent; }
+  .todo-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 2px;
+  }
+
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--light);
+    font-size: calc(16px * var(--scale));
+    font-weight: 500;
+  }
+
+  /* ── Todo Item ── */
+  .todo-item {
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: default;
+    transition: box-shadow 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+    position: relative;
+    -webkit-app-region: no-drag;
+  }
+  .todo-item:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+  .todo-item.drag-handle {
+    cursor: grab;
+  }
+  .todo-item.dragging {
+    opacity: 0.9;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    transition: none;
+  }
+  .todo-item.drag-over {
+    border-color: var(--blue);
+    border-style: dashed;
+  }
+
+  /* ── Checkbox ── */
+  .checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--blue);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+  }
+  .checkbox:hover {
+    background: rgba(0, 122, 255, 0.1);
+  }
+  .checkbox.done {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .checkbox.done::after {
+    content: "";
+    width: 8px;
+    height: 5px;
+    border-left: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(-45deg) translateY(-1px);
+  }
+
+  /* ── Todo Text ── */
+  .todo-text {
+    flex: 1;
+    font-size: calc(14px * var(--scale));
+    line-height: 1.4;
+    color: var(--black);
+    transition: all 0.25s ease;
+    word-break: break-word;
+  }
+  .todo-text.done {
+    color: var(--light);
+    text-decoration: line-through;
+    text-decoration-color: var(--light);
+  }
+
+  /* ── Delete Button ── */
+  .delete-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .todo-item:hover .delete-btn {
+    color: var(--light);
+  }
+  .delete-btn:hover {
+    color: var(--red) !important;
+    background: rgba(255, 59, 48, 0.1);
+  }
+
+  /* ── Edit Mode ── */
+  .edit-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: calc(14px * var(--scale));
+    color: var(--black);
+    font-family: inherit;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* ── Clear Menu ── */
+  .clear-menu {
+    position: fixed;
+    background: var(--card-solid);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    z-index: 1000;
+    min-width: 160px;
+    display: none;
+    -webkit-app-region: no-drag;
+  }
+  .clear-menu.show { display: block; }
+
+  .clear-menu-item {
+    padding: 8px 14px;
+    font-size: calc(13px * var(--scale));
+    color: var(--black);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .clear-menu-item:hover {
+    background: rgba(0, 122, 255, 0.1);
+    color: var(--blue);
+  }
+
+  /* ── Animation ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .todo-item { animation: fadeIn 0.2s ease; }
+
+  /* ── Drag placeholder ── */
+  .drag-placeholder {
+    background: rgba(0, 122, 255, 0.05);
+    border: 2px dashed rgba(0, 122, 255, 0.3);
+    border-radius: 12px;
+    min-height: 52px;
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="traffic-lights">
+        <div class="traffic-light red" onclick="pywebview.api.close()"></div>
+        <div class="traffic-light yellow" onclick="pywebview.api.cycle_size()"></div>
+        <div class="traffic-light green" onclick="pywebview.api.minimize()"></div>
+      </div>
+      <div class="title">待办</div>
+    </div>
+    <div class="header-right">
+      <div class="header-btn" id="clearBtn" onclick="showClearMenu(event)">清空 ▾</div>
+      <span id="timeInfo" class="time-info"></span>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-card">
+    <div class="add-btn" onclick="addTodo()">+</div>
+    <input class="input-field" id="todoInput" placeholder="添加新的待办事项..."
+           onkeydown="if(event.key==='Enter') addTodo()">
+  </div>
+
+  <!-- Todo List -->
+  <div class="todo-list" id="todoList"></div>
+</div>
+
+<!-- Clear Menu -->
+<div class="clear-menu" id="clearMenu">
+  <div class="clear-menu-item" onclick="clearTodos(t => !t.done)">清空已完成待办</div>
+  <div class="clear-menu-item" onclick="clearTodos(t => t.done)">清空待办</div>
+  <div class="clear-menu-item" onclick="clearTodos()">清空全部</div>
+</div>
+
+</div> <!-- end .window -->
+
+<script>
+  let todos = [];
+  let today = "";
+
+  // ── Helpers ──
+  function getTodayItems() {
+    return todos[today] || null;
+  }
+
+  function insertBeforeDone(arr, item) {
+    const firstDoneIdx = arr.findIndex(t => t.done);
+    if (firstDoneIdx === -1) {
+      arr.push(item);
+    } else {
+      arr.splice(firstDoneIdx, 0, item);
+    }
+  }
+
+  function getItemAtY(y) {
+    for (const item of document.querySelectorAll('.todo-item')) {
+      const rect = item.getBoundingClientRect();
+      if (y >= rect.top && y <= rect.bottom) return item;
+    }
+    return null;
+  }
+
+  // ── Date & Time ──
+  function updateDateTime() {
+    const now = new Date();
+    today = now.toISOString().split('T')[0];
+
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    document.getElementById('timeInfo').textContent = `${hours}:${minutes}`;
+  }
+
+  // ── Render ──
+  function render() {
+    const list = document.getElementById('todoList');
+    const items = todos[today] || [];
+
+    if (items.length === 0) {
+      list.innerHTML = '<div class="empty-state">暂无待办</div>';
+      return;
+    }
+
+    // Display in order: not-done first, done last
+    list.innerHTML = items.map((item, idx) => `
+      <div class="todo-item" data-idx="${idx}"
+           onmousedown="onItemMouseDown(event, ${idx})">
+        <div class="checkbox ${item.done ? 'done' : ''}"
+             onclick="event.stopPropagation(); toggleTodo(${idx})"></div>
+        <div class="todo-text ${item.done ? 'done' : ''}"
+             ondblclick="startEdit(${idx})"
+             id="text-${idx}">${escapeHtml(item.text)}</div>
+        <div class="delete-btn" onclick="event.stopPropagation(); deleteTodo(${idx})">×</div>
+      </div>
+    `).join('');
+
+    // Add drag events to todo items
+    list.querySelectorAll('.todo-item').forEach(item => {
+      item.addEventListener('mousedown', (e) => e.stopPropagation());
+    });
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // ── Actions ──
+  async function addTodo() {
+    const input = document.getElementById('todoInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    if (!todos[today]) todos[today] = [];
+    insertBeforeDone(todos[today], { text, done: false });
+
+    await saveTodos();
+    render();
+  }
+
+  async function toggleTodo(idx) {
+    const items = getTodayItems();
+    if (!items || idx >= items.length) return;
+    items[idx].done = !items[idx].done;
+
+    const item = items[idx];
+    items.splice(idx, 1);
+    if (item.done) {
+      items.push(item);
+    } else {
+      insertBeforeDone(items, item);
+    }
+
+    await saveTodos();
+    render();
+  }
+
+  async function deleteTodo(idx) {
+    const items = getTodayItems();
+    if (!items) return;
+    items.splice(idx, 1);
+    await saveTodos();
+    render();
+  }
+
+  function startEdit(idx) {
+    const textEl = document.getElementById(`text-${idx}`);
+    if (!textEl) return;
+    const current = todos[today][idx].text;
+
+    const input = document.createElement('input');
+    input.className = 'edit-input';
+    input.value = current;
+    input.onblur = () => finishEdit(idx, input);
+    input.onkeydown = (e) => {
+      if (e.key === 'Enter') input.blur();
+      if (e.key === 'Escape') { input.value = current; input.blur(); }
+    };
+
+    textEl.replaceWith(input);
+    input.focus();
+    input.select();
+  }
+
+  async function finishEdit(idx, input) {
+    const text = input.value.trim();
+    if (text && todos[today] && idx < todos[today].length) {
+      todos[today][idx].text = text;
+      await saveTodos();
+    }
+    render();
+  }
+
+  // ── Drag & Drop using mouse events ──
+  let isDragging = false;
+  let dragStartY = 0;
+  let dragElement = null;
+  let dragIdx = -1;
+
+  function onItemMouseDown(e, idx) {
+    if (e.button !== 0) return;
+    e.preventDefault();
+
+    dragStartY = e.clientY;
+    dragIdx = idx;
+    dragElement = e.target.closest('.todo-item');
+
+    const onMouseMove = (ev) => {
+      const dy = Math.abs(ev.clientY - dragStartY);
+
+      if (!isDragging && dy > 5) {
+        isDragging = true;
+        if (dragElement) dragElement.classList.add('dragging');
+        document.body.style.cursor = 'grabbing';
+      }
+
+      if (!isDragging) return;
+
+      document.querySelectorAll('.todo-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+      const target = getItemAtY(ev.clientY);
+      if (target) target.classList.add('drag-over');
+    };
+
+    const onMouseUp = async (ev) => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+
+      if (isDragging && dragElement) {
+        dragElement.classList.remove('dragging');
+        const target = getItemAtY(ev.clientY);
+        const targetIdx = target ? parseInt(target.dataset.idx) : -1;
+
+        if (targetIdx !== -1 && dragIdx !== targetIdx && todos[today]) {
+          const arr = todos[today];
+          const [moved] = arr.splice(dragIdx, 1);
+          arr.splice(targetIdx, 0, moved);
+          await saveTodos();
+          render();
+        }
+      }
+
+      document.querySelectorAll('.todo-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+      isDragging = false;
+      dragElement = null;
+      dragIdx = -1;
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  // ── Clear ──
+  function showClearMenu(e) {
+    const menu = document.getElementById('clearMenu');
+    menu.style.left = e.clientX - 140 + 'px';
+    menu.style.top = e.clientY + 10 + 'px';
+    menu.classList.add('show');
+
+    const close = (ev) => {
+      if (!menu.contains(ev.target)) {
+        menu.classList.remove('show');
+        document.removeEventListener('click', close);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', close), 10);
+  }
+
+  async function clearTodos(filterFn) {
+    if (!todos[today]) return;
+    todos[today] = filterFn ? todos[today].filter(filterFn) : [];
+    await saveTodos();
+    render();
+    document.getElementById('clearMenu').classList.remove('show');
+  }
+
+  // ── Data ──
+  async function saveTodos() {
+    await pywebview.api.save(JSON.stringify(todos));
+  }
+
+  async function loadTodos() {
+    const data = await pywebview.api.load();
+    todos = JSON.parse(data);
+    render();
+  }
+
+  // ── Init ──
+  window.addEventListener('pywebviewready', () => {
+    updateDateTime();
+    loadTodos();
+    initWindowDrag();
+    updateScale();
+  });
+
+  setInterval(updateDateTime, 30000);
+
+  let scaleRaf = 0;
+  window.addEventListener('resize', () => {
+    if (!scaleRaf) scaleRaf = requestAnimationFrame(() => { scaleRaf = 0; updateScale(); });
+  });
+
+  function updateScale() {
+    const width = window.innerWidth;
+    // Scale from 0.8 (at 260px) to 1.2 (at 420px)
+    const scale = Math.max(0.8, Math.min(1.2, width / 340));
+    document.documentElement.style.setProperty('--scale', scale);
+  }
+
+  // ── Window Drag ──
+  let windowDragActive = false;
+
+  function initWindowDrag() {
+    document.addEventListener('mousedown', (e) => {
+      // Only drag on empty areas (not on interactive elements)
+      const target = e.target;
+      const isInteractive = target.closest('.todo-item, .input-card, .checkbox, .delete-btn, .header-btn, .traffic-light, .clear-menu, .clear-menu-item, input, button');
+
+      if (!isInteractive && e.button === 0) {
+        windowDragActive = true;
+        pywebview.api.start_drag(e.screenX, e.screenY);
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (windowDragActive) {
+        pywebview.api.do_drag(e.screenX, e.screenY);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (windowDragActive) {
+        windowDragActive = false;
+        pywebview.api.stop_drag();
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

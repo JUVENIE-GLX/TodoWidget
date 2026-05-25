@@ -119,12 +119,12 @@ class Api:
         """Load todo data and perform cleanup"""
         data = _load(DATA_FILE)
         today = datetime.now().strftime("%Y-%m-%d")
-        had_today = bool(data.get(today))
+        had_today = today in data
 
         if today not in data:
             data[today] = []
 
-        if not data[today]:
+        if not data[today] and not had_today:
             history = sorted([d for d in data if d < today], reverse=True)
             if history:
                 pending = [dict(t) for t in data[history[0]] if not t.get("done")]
