@@ -11,7 +11,9 @@ webview_hiddenimports = collect_submodules('webview')
 a = Analysis(
     ['todo_widget.py'],
     pathex=[],
-    binaries=[],
+    binaries=[
+        ('D:/Python IDLE/Lib/site-packages/_cffi_backend.cp312-win_amd64.pyd', '.'),
+    ],
     datas=[
         ('todo_widget.html', '.'),
         ('todo_data.json', '.'),
@@ -19,6 +21,12 @@ a = Analysis(
     ] + webview_datas,
     hiddenimports=webview_hiddenimports + [
         'clr',
+        'cffi',
+        '_cffi_backend',
+        'clr_loader',
+        'clr_loader.ffi',
+        'clr_loader.hostfxr',
+        'pythonnet',
         'webview',
         'webview.platforms.winforms',
     ],
@@ -50,7 +58,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,
+    icon='todo_widget.ico',
 )
 
 coll = COLLECT(

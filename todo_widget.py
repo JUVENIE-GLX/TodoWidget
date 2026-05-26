@@ -2,6 +2,9 @@ import sys
 import os
 import subprocess
 
+# Set .NET runtime for pythonnet (use .NET Framework for WinForms)
+os.environ['PYTHONNET_RUNTIME'] = 'netfx'
+
 # Monkey-patch subprocess to hide console windows
 _original_popen = subprocess.Popen
 def _hidden_popen(*args, **kwargs):
