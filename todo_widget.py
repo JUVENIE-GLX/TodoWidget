@@ -66,9 +66,6 @@ SIZE_NAMES = [s[0] for s in SIZES]
 def _get_primary_work_area():
     """Get primary monitor work area (excluding taskbar) using Windows API"""
     try:
-        import ctypes
-        from ctypes import wintypes
-
         class RECT(ctypes.Structure):
             _fields_ = [("left", wintypes.LONG), ("top", wintypes.LONG),
                         ("right", wintypes.LONG), ("bottom", wintypes.LONG)]

@@ -410,8 +410,10 @@
     }
   }
 
+  let _dragItems = null;
   function getItemAtY(y) {
-    for (const item of document.querySelectorAll('.todo-item')) {
+    const items = _dragItems || document.querySelectorAll('.todo-item');
+    for (const item of items) {
       const rect = item.getBoundingClientRect();
       if (y >= rect.top && y <= rect.bottom) return item;
     }
@@ -432,6 +434,7 @@
   // ── Render ──
   function render() {
     const list = document.getElementById('todoList');
+    const scrollTop = list.scrollTop;
     const items = todos[today] || [];
 
     if (items.length === 0) {
@@ -456,12 +459,14 @@
     list.querySelectorAll('.todo-item').forEach(item => {
       item.addEventListener('mousedown', (e) => e.stopPropagation());
     });
+
+    list.scrollTop = scrollTop;
   }
 
+  const _escEl = document.createElement('div');
   function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    _escEl.textContent = text;
+    return _escEl.innerHTML;
   }
 
   // ── Actions ──
@@ -550,6 +555,7 @@
 
       if (!isDragging && dy > 5) {
         isDragging = true;
+        _dragItems = document.querySelectorAll('.todo-item');
         if (dragElement) dragElement.classList.add('dragging');
         document.body.style.cursor = 'grabbing';
       }
@@ -581,6 +587,7 @@
       }
 
       document.querySelectorAll('.todo-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+      _dragItems = null;
       isDragging = false;
       dragElement = null;
       dragIdx = -1;
