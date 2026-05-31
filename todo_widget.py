@@ -43,6 +43,10 @@ try:
     DWMWA_WINDOW_CORNER_PREFERENCE = 33
     DWMWCP_ROUND = 2
 
+    class _RECT(ctypes.Structure):
+        _fields_ = [("left", wintypes.LONG), ("top", wintypes.LONG),
+                    ("right", wintypes.LONG), ("bottom", wintypes.LONG)]
+
     def set_window_rounded(hwnd):
         """Set window rounded corners (Windows 11)"""
         try:
@@ -56,6 +60,7 @@ try:
         except Exception:
             pass
 except ImportError:
+    _RECT = None
     def set_window_rounded(hwnd):
         pass
 
@@ -66,11 +71,7 @@ SIZE_NAMES = [s[0] for s in SIZES]
 def _get_primary_work_area():
     """Get primary monitor work area (excluding taskbar) using Windows API"""
     try:
-        class RECT(ctypes.Structure):
-            _fields_ = [("left", wintypes.LONG), ("top", wintypes.LONG),
-                        ("right", wintypes.LONG), ("bottom", wintypes.LONG)]
-
-        rect = RECT()
+        rect = _RECT()
         # SPI_GETWORKAREA = 0x0030
         ctypes.windll.user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0)
         return rect.left, rect.top, rect.right, rect.bottom

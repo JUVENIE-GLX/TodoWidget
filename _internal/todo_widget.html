@@ -455,11 +455,6 @@
       </div>
     `).join('');
 
-    // Add drag events to todo items
-    list.querySelectorAll('.todo-item').forEach(item => {
-      item.addEventListener('mousedown', (e) => e.stopPropagation());
-    });
-
     list.scrollTop = scrollTop;
   }
 
@@ -544,6 +539,7 @@
 
   function onItemMouseDown(e, idx) {
     if (e.button !== 0) return;
+    e.stopPropagation();
     e.preventDefault();
 
     dragStartY = e.clientY;
